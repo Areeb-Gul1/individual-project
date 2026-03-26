@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Explainable AI with CNNs — Grad-CAM on PlantVillage</title>
+  <style>
+    :root{
+      --bg:#ffffff;
+      --text:#111827;
+      --muted:#374151;
+      --card:#F7F8FB;
+      --border:#E5E7EB;
+      --accent:#1D4ED8;
+      --accent2:#F59E0B;
+    }
+    body{
+      margin:0;
+      font-family: Arial, Helvetica, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      line-height:1.5;
+    }
+    header{
+      padding:28px 18px;
+      border-bottom:1px solid var(--border);
+      background:linear-gradient(180deg, var(--card), #fff);
+    }
+    .wrap{
+      max-width:1000px;
+      margin:0 auto;
+      padding:14px 18px 60px;
+    }
+    h1{
+      font-size:28px;
+      margin:0 0 8px;
+    }
+    h2{
+      font-size:20px;
+      margin:26px 0 10px;
+      border-left:6px solid var(--accent);
+      padding-left:12px;
+    }
+    p{ margin: 10px 0; color: var(--text); }
+    .muted{ color: var(--muted); }
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:14px 14px;
+      margin:14px 0;
+    }
+    figure{
+      margin:0;
+      padding:0;
+      border:1px solid var(--border);
+      background:#fff;
+      border-radius:12px;
+      overflow:hidden;
+    }
+    figure img{
+      width:100%;
+      height:auto;
+      display:block;
+    }
+    figcaption{
+      padding:10px 12px 12px;
+      color:var(--muted);
+      font-size:14px;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:16px;
+    }
+    @media (min-width: 920px){
+      .grid-2{ grid-template-columns: 1fr 1fr; }
+      .grid-3{ grid-template-columns: 1fr 1fr 1fr; }
+    }
+    code{
+      background:#F3F4F6;
+      padding:2px 6px;
+      border-radius:8px;
+    }
+    .foot{
+      margin-top:30px;
+      padding-top:18px;
+      border-top:1px solid var(--border);
+      color:var(--muted);
+      font-size:14px;
+    }
+    .ref-list ol{ padding-left: 18px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>Explainable AI with CNNs — Grad-CAM on PlantVillage</h1>
+      <p class="muted">
+        A short, story-based tutorial showing how we train a CNN classifier and then use <b>Grad-CAM</b>
+        to visualise what parts of a leaf image most influenced the prediction (Selvaraju et al., 2017).
+      </p>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="card">
+      <h2 style="border-left-color: var(--accent2);">The idea in plain language</h2>
+      <p>
+        Imagine an AI is asked to identify plant disease from a photo. The model can be accurate, but
+        it may be hard to trust. Grad-CAM (Selvaraju et al., 2017) turns the decision into a heatmap so you can
+        see which image regions were most influential for the predicted class.
+      </p>
+      <p class="muted">
+        <b>Important:</b> Grad-CAM is a post-hoc visual explanation. It highlights correlated evidence used by the model,
+        but it does not prove the highlighted pixels are the true biological cause of disease (Ribeiro et al., 2016).
+      </p>
+    </div>
+
+    <h2>1) Scene A — The photos (PlantVillage dataset)</h2>
+    <p class="muted">
+      The dataset comes from PlantVillage (Hughes &amp; Salath&eacute;, 2015). In this project we select a small set of
+      “healthy” and “disease” classes to keep the tutorial fast and focused.
+    </p>
+    <div class="grid">
+      <figure>
+        <img src="figures/00_story_dataset_gallery.png" alt="Gallery of example plant leaf images for each class in the tutorial selection." />
+        <figcaption>
+          <b>Figure:</b> Example images per selected class. These are the “characters” in our story.
+        </figcaption>
+      </figure>
+    </div>
+
+    <h2>2) Scene B — Training the learner</h2>
+    <p>
+      We split images into training, validation, and test sets so we can measure how well the model learns and
+      how well it performs on unseen images. (Validation is a better indicator than training accuracy alone.)
+    </p>
+    <div class="grid grid-2">
+      <figure>
+        <img src="figures/01_story_split_distribution.png" alt="Bar chart showing how many images are in train, validation, and test for each selected class." />
+        <figcaption>
+          <b>Figure:</b> How the data is split into Train / Validation / Test.
+        </figcaption>
+      </figure>
+      <figure>
+        <img src="figures/02_story_resize_and_augmentation.png" alt="Three images showing how the same photo appears after resizing and two different training augmentations." />
+        <figcaption>
+          <b>Figure:</b> The model is trained on variations of the same photo so it learns robust patterns.
+        </figcaption>
+      </figure>
+    </div>
+
+    <h2>3) Scene C — The report card (learning curves)</h2>
+    <p class="muted">
+      We track two signals:
+      (1) <b>loss</b> (lower is better), and (2) <b>accuracy</b> (higher is better) on training vs validation.
+    </p>
+    <div class="grid">
+      <figure>
+        <img src="figures/03_training_curves.png" alt="Learning curves: loss and accuracy over epochs for train and validation." />
+        <figcaption>
+          <b>Figure:</b> Training progress. We expect loss to go down and accuracy to go up.
+        </figcaption>
+      </figure>
+    </div>
+
+    <h2>4) Scene D — Evaluation (where predictions go wrong)</h2>
+    <p>
+      A confusion matrix shows which classes the model confuses. Diagonal entries represent correct predictions.
+    </p>
+    <div class="grid">
+      <figure>
+        <img src="figures/04_confusion_matrix.png" alt="Confusion matrix comparing true vs predicted labels for the selected classes." />
+        <figcaption>
+          <b>Figure:</b> Confusion matrix. Look for off-diagonal blocks to see which diseases are mixed up.
+        </figcaption>
+      </figure>
+    </div>
+
+    <h2>5) Scene E — The explanation (Grad-CAM heatmaps)</h2>
+    <p class="muted">
+      Each snapshot shows:
+      (1) the original photo,
+      (2) a heatmap (brighter = stronger influence),
+      (3) an overlay that helps non-technical readers understand where the model “looked”.
+    </p>
+
+    <div class="grid grid-2">
+      <figure>
+        <img src="figures/05_gradcam_case1_correct.png" alt="Grad-CAM explanation for a correct prediction: original photo, heatmap, and overlay." />
+        <figcaption><b>Case 1:</b> Correct prediction. Heatmap should align with plausible diseased tissue.</figcaption>
+      </figure>
+      <figure>
+        <img src="figures/06_gradcam_case2_wrong.png" alt="Grad-CAM explanation for a wrong prediction: original photo, heatmap, and overlay." />
+        <figcaption><b>Case 2:</b> Wrong prediction. Heatmap can reveal misleading focus (useful for debugging).</figcaption>
+      </figure>
+    </div>
+
+    <div class="grid">
+      <figure>
+        <img src="figures/07_gradcam_case3_healthy_vs_diseased.png" alt="Side-by-side Grad-CAM overlays comparing healthy versus diseased examples and showing different attention patterns." />
+        <figcaption><b>Case 3:</b> Healthy vs diseased attention patterns side by side.</figcaption>
+      </figure>
+    </div>
+
+    <h2>Ethics note (what Grad-CAM can and cannot promise)</h2>
+    <div class="card">
+      <p>
+        Grad-CAM provides post-hoc explanations, but these are not causal and may highlight correlated features rather than true disease regions (Ribeiro et al., 2016).
+      </p>
+      <p>
+        Additionally, models trained on PlantVillage may not generalise well to real-world conditions due to controlled backgrounds,
+        lighting, and image quality. This can lead to biased predictions if deployed in practical agricultural settings.
+      </p>
+      <p>
+        Therefore, such systems should be used as decision-support tools rather than fully automated solutions, and predictions should be validated by domain experts before taking action.
+      </p>
+    </div>
+
+    <h2>References</h2>
+    <div class="ref-list">
+      <ol>
+        <li>Selvaraju, R.R., Cogswell, M., Das, A., Vedantam, R., Parikh, D. and Batra, D., 2017. <i>Grad-CAM: Visual Explanations from Deep Networks via Gradient-based Localization.</i> International Journal of Computer Vision (IJCV). 
+          Available at: <a href="https://arxiv.org/abs/1610.02391">https://arxiv.org/abs/1610.02391</a></li>
+        <li>Hughes, D.P. and Salath&eacute;, M., 2015. <i>An open access repository of images on plant health to enable the development of mobile disease diagnostics.</i> arXiv preprint. 
+          Available at:
+      <a href="https://arxiv.org/abs/1511.08060">https://arxiv.org/abs/1511.08060</a>
+    </li>
+        <li>He, K., Zhang, X., Ren, S. and Sun, J., 2016. <i>Deep Residual Learning for Image Recognition.</i> Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR). 
+          Available at: <a href="https://arxiv.org/abs/1512.03385">https://arxiv.org/abs/1512.03385</a></li>
+        <li>Krizhevsky, A., Sutskever, I. and Hinton, G.E., 2012. <i>ImageNet classification with deep convolutional neural networks.</i> Advances in Neural Information Processing Systems (NeurIPS). 
+          Available at: <a href="https://arxiv.org/abs/1202.3235">https://arxiv.org/abs/1202.3235</a></li>
+        <li>Zeiler, M.D. and Fergus, R., 2014. <i>Visualizing and understanding convolutional networks.</i> European Conference on Computer Vision (ECCV). 
+          Available at: <a href="https://arxiv.org/abs/1311.2901">https://arxiv.org/abs/1311.2901</a></li>
+        <li>Paszke, A. et al., 2019. <i>PyTorch: An Imperative Style, High-Performance Deep Learning Library.</i> NeurIPS. 
+            Available at: <a href="https://pytorch.org">https://pytorch.org</a></li>
+        <li>PyTorch Team, 2024. <i>Torchvision Models Documentation.</i> 
+          Available at: <a href="https://pytorch.org/vision/stable/models.html">https://pytorch.org/vision/stable/models.html</a></li>
+        <li>Mohit Singh, 2020. <i>PlantVillage Dataset.</i> Kaggle. 
+          Available at: <a href="https://www.kaggle.com/datasets/mohitsingh1804/plantvillage">https://www.kaggle.com/datasets/mohitsingh1804/plantvillage</a></li>
+        <li>Ribeiro, M.T., Singh, S. and Guestrin, C., 2016. <i>Why Should I Trust You?: Explaining the Predictions of Any Classifier.</i> ACM SIGKDD. 
+          Available at: <a href="https://arxiv.org/abs/1602.04938">https://arxiv.org/abs/1602.04938</a></li>
+      </ol>
+    </div>
+
+    <div class="foot">
+      <b>Code + tutorial notebook:</b>
+      <a href="https://github.com/Areeb-Gul1/individual-project.git">https://github.com/Areeb-Gul1/individual-project.git</a>
+      <div class="muted">Included figures are generated by the notebook and stored in <code>figures/</code>.</div>
+    </div>
+  </div>
+</body>
+</html>
+

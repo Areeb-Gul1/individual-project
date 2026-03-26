@@ -4,9 +4,7 @@ Tutorial code for **Explainable AI with CNNs: Visualizing Model Decisions using 
 
 ## Repository link for markers
 
-**Before submitting:** create a **public** GitHub repository and replace the placeholder below everywhere (PDF, notebook first cell, CodeGrade comments). Test the link in an incognito/private window.
-
-`https://github.com/YOUR_USERNAME/YOUR_REPO_NAME`
+**Repository (public):** `https://github.com/Areeb-Gul1/individual-project.git`
 
 ## Quick start
 
