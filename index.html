@@ -201,15 +201,15 @@
       <figure>
         <img src="figures/10_gradcam_extra_correct_1.png" alt="Additional Grad-CAM panel for another correct prediction: original, heatmap, overlay." />
         <figcaption>
-          Other correct prediction Grad-CAM panel: original, heatmap, overlay.
-          <b>Extra Grad-CAM (correct):</b> This is another correct case so that the use of one anecdote is not relied on. The presence of regular attention to the areas of leaf symptoms in a series of correctly solved examples supports the argument that the model acquired meaningful features. When the focus is on similar patterns of disease repeatedly, the belief in the general reasoning as opposed to the coincidental correspondence of the model is enhanced.
+          Additional Grad-CAM panel for another correct prediction: original, heatmap, overlay.
+          <b>Extra Grad-CAM (correct):</b> Another correct case to avoid relying on a single anecdote. Consistent focus on leaf symptom regions across multiple correct examples strengthens the claim that the model learned relevant features. If attention repeatedly targets similar disease patterns, it increases confidence in the model’s general reasoning rather than chance alignment.
         </figcaption>
       </figure>
       <figure>
         <img src="figures/11_gradcam_extra_wrong_1.png" alt="Additional Grad-CAM panel for another incorrect prediction: original, heatmap, overlay." />
         <figcaption>
-          Further Grad-CAM panel of another false prediction: original, heatmap, overlay.
-          <b>Extra Grad-CAM (incorrect):</b> This is another failure example of the model not comprehending when it fails. When ambiguous textures or non-symptom locations are highlighted in the heatmap, that indicates that the classifier is susceptible to spurious or coinciding visual features. Such descriptions facilitate the establishment of realistic boundaries of deployment and incentive the enhancement of datasets.
+          Additional Grad-CAM panel for another incorrect prediction: original, heatmap, overlay.
+          <b>Extra Grad-CAM (incorrect):</b> A second failure case to understand when the model breaks. If the heatmap highlights ambiguous textures or non-symptom regions, it suggests the classifier is vulnerable to spurious correlations or overlapping visual cues. These explanations help define realistic deployment boundaries and motivate dataset improvements.
         </figcaption>
       </figure>
     </div>
@@ -218,7 +218,8 @@
       <figure>
         <img src="figures/07_gradcam_case3_healthy_vs_diseased.png" alt="Side-by-side Grad-CAM overlays comparing healthy versus diseased examples and showing different attention patterns." />
         <figcaption>
-          Comparisons of Grad-CAM overlay localization of attention between healthy and diseased examples and the visualization of varying attention patterns.
+          Side-by-side Grad-CAM overlays comparing healthy versus diseased examples and showing different attention patterns.
+          <b>Case 3:</b> Healthy vs diseased attention patterns side by side. The healthy sample typically produces weaker, more diffuse attention, while the diseased sample shows stronger concentration around abnormal leaf areas. This contrast supports the idea that the model distinguishes structural symptom regions rather than treating all leaf textures equally. Comparing both cases side by side improves interpretability for non-technical users and helps communicate model behavior clearly.
         </figcaption>
       </figure>
     </div>
