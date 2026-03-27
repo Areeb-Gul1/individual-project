@@ -127,6 +127,9 @@
         <img src="figures/00_story_dataset_gallery.png" alt="Gallery of example plant leaf images for each class in the tutorial selection." />
         <figcaption>
           <b>Figure:</b> Example images per selected class. These are the “characters” in our story.
+          The visual differences between healthy and diseased leaves are noticeable, but some disease classes still share similar color shifts and texture changes.
+          This early overlap is important because it explains why classification is not trivial, even for a strong CNN.
+          It also justifies using explainability later, so we can verify the model is focusing on leaf symptoms rather than incidental image patterns.
         </figcaption>
       </figure>
     </div>
@@ -141,12 +144,18 @@
         <img src="figures/01_story_split_distribution.png" alt="Bar chart showing how many images are in train, validation, and test for each selected class." />
         <figcaption>
           <b>Figure:</b> How the data is split into Train / Validation / Test.
+          The split keeps evaluation honest by ensuring the model is tested on images it has never seen during training.
+          A balanced distribution across classes helps reduce bias toward majority classes and makes accuracy comparisons more meaningful.
+          This setup supports fair interpretation of both performance metrics and Grad-CAM explanations in later stages.
         </figcaption>
       </figure>
       <figure>
         <img src="figures/02_story_resize_and_augmentation.png" alt="Three images showing how the same photo appears after resizing and two different training augmentations." />
         <figcaption>
           <b>Figure:</b> The model is trained on variations of the same photo so it learns robust patterns.
+          Augmentation increases variation in orientation, scale, and appearance, which helps the model generalize beyond a single visual style.
+          This reduces the risk that the network memorizes exact training samples instead of learning disease-related structures.
+          As a result, model behavior is usually more stable when tested on new images with minor photographic differences.
         </figcaption>
       </figure>
     </div>
@@ -161,6 +170,9 @@
         <img src="figures/03_training_curves.png" alt="Learning curves: loss and accuracy over epochs for train and validation." />
         <figcaption>
           <b>Figure:</b> Training progress. We expect loss to go down and accuracy to go up.
+          The model shows improving accuracy and decreasing loss over epochs, indicating that it is learning meaningful class-discriminative patterns.
+          The validation trend broadly follows the training trend, which suggests limited overfitting rather than severe memorization.
+          Any remaining gap between training and validation curves indicates where further regularization or additional data could still improve robustness.
         </figcaption>
       </figure>
     </div>
@@ -174,6 +186,9 @@
         <img src="figures/04_confusion_matrix.png" alt="Confusion matrix comparing true vs predicted labels for the selected classes." />
         <figcaption>
           <b>Figure:</b> Confusion matrix. Look for off-diagonal blocks to see which diseases are mixed up.
+          Strong diagonal cells indicate that the model correctly identifies many samples in each class.
+          Off-diagonal errors show that visually similar disease categories are sometimes confused, which is expected when symptoms overlap.
+          This error pattern highlights where class-specific data enrichment or targeted augmentation would likely provide the biggest gains.
         </figcaption>
       </figure>
     </div>
@@ -189,19 +204,44 @@
     <div class="grid grid-2">
       <figure>
         <img src="figures/05_gradcam_case1_correct.png" alt="Grad-CAM explanation for a correct prediction: original photo, heatmap, and overlay." />
-        <figcaption><b>Case 1:</b> Correct prediction. Heatmap should align with plausible diseased tissue.</figcaption>
+        <figcaption>
+          <b>Case 1:</b> Correct prediction. Heatmap should align with plausible diseased tissue.
+          In this example, the model focuses on discolored regions of the leaf, which aligns with visible disease symptoms.
+          This suggests the network is using relevant leaf evidence rather than background noise to make the correct decision.
+          The alignment between prediction and highlighted pathology increases confidence that the classifier has learned meaningful visual cues.
+        </figcaption>
       </figure>
       <figure>
         <img src="figures/06_gradcam_case2_wrong.png" alt="Grad-CAM explanation for a wrong prediction: original photo, heatmap, and overlay." />
-        <figcaption><b>Case 2:</b> Wrong prediction. Heatmap can reveal misleading focus (useful for debugging).</figcaption>
+        <figcaption>
+          <b>Case 2:</b> Wrong prediction. Heatmap can reveal misleading focus (useful for debugging).
+          The attention map appears partially shifted toward less informative regions, which can explain the incorrect class assignment.
+          This indicates the model may be reacting to ambiguous texture or color patterns shared across disease classes.
+          Such cases are valuable for debugging because they identify where additional samples or improved preprocessing are needed.
+        </figcaption>
       </figure>
     </div>
 
     <div class="grid">
       <figure>
         <img src="figures/07_gradcam_case3_healthy_vs_diseased.png" alt="Side-by-side Grad-CAM overlays comparing healthy versus diseased examples and showing different attention patterns." />
-        <figcaption><b>Case 3:</b> Healthy vs diseased attention patterns side by side.</figcaption>
+        <figcaption>
+          <b>Case 3:</b> Healthy vs diseased attention patterns side by side.
+          The healthy sample typically produces weaker, more diffuse attention, while the diseased sample shows stronger concentration around abnormal leaf areas.
+          This contrast supports the idea that the model distinguishes structural symptom regions rather than treating all leaf textures equally.
+          Comparing both cases side by side improves interpretability for non-technical users and helps communicate model behavior clearly.
+        </figcaption>
       </figure>
+    </div>
+
+    <h2>Why this matters</h2>
+    <div class="card">
+      <p>
+        Explainable AI techniques like Grad-CAM are important because they help users trust model predictions. In real-world applications such as agriculture, understanding why a model makes a decision is as important as the accuracy itself.
+      </p>
+      <p>
+        Farmers and agronomists need transparent evidence before acting on disease alerts that may affect crop treatment costs and yield outcomes. Visual explanations provide a practical bridge between deep learning outputs and human decision-making.
+      </p>
     </div>
 
     <h2>Ethics note (what Grad-CAM can and cannot promise)</h2>
@@ -215,6 +255,32 @@
       </p>
       <p>
         Therefore, such systems should be used as decision-support tools rather than fully automated solutions, and predictions should be validated by domain experts before taking action.
+      </p>
+    </div>
+
+    <h2>Limitations</h2>
+    <div class="card">
+      <p>
+        This project uses a subset of PlantVillage data collected in relatively controlled conditions, so performance may drop in field environments with cluttered backgrounds, variable lighting, or low-quality mobile images.
+      </p>
+      <p>
+        Grad-CAM improves transparency, but it does not provide causal proof and can sometimes produce visually plausible maps even when the prediction is wrong. For this reason, interpretability outputs should be treated as supporting evidence, not definitive diagnosis.
+      </p>
+      <p>
+        The current model is also constrained by class coverage and sample diversity. Expanding the dataset to include more crops, disease stages, and geographic variability would improve reliability and external validity.
+      </p>
+    </div>
+
+    <h2>Conclusion</h2>
+    <div class="card">
+      <p>
+        This webpage demonstrates a complete explainable image-classification pipeline: dataset preparation, model training, quantitative evaluation, and Grad-CAM-based interpretation. The combined results show that the CNN can learn useful disease patterns while also exposing where and why errors occur.
+      </p>
+      <p>
+        By adding interpretation to each figure, the analysis moves beyond simple description and provides evidence-based reasoning about model behavior. This is essential for academic rigor and for practical deployment where users must understand both strengths and failure cases.
+      </p>
+      <p>
+        Overall, the work supports the use of explainable AI as a decision-support approach in agriculture, where trust, transparency, and responsible use are as critical as raw predictive performance.
       </p>
     </div>
 
