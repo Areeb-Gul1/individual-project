@@ -302,13 +302,14 @@ def train_model(
     *,
     device: torch.device,
     out_dir: Path = Path("artifacts"),
+    verbose: bool = True,
 ) -> dict[str, Any]:
     """Train with early stopping and best-checkpoint tracking (validation loss).
 
     Returns a dict with history + best checkpoint path.
     """
 
-    out_dir.mkdir(exist_ok=True)
+    out_dir.mkdir(parents=True, exist_ok=True)
     history: dict[str, list[float]] = {"train_loss": [], "val_loss": [], "train_acc": [], "val_acc": []}
 
     criterion = nn.CrossEntropyLoss(label_smoothing=cfg.label_smoothing)
@@ -340,8 +341,26 @@ def train_model(
             else:
                 scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=max(cfg.epochs - epoch + 1, 1))
 
-        tr_loss, tr_acc = _run_epoch(model, train_dl, criterion, optimizer, device=device, train=True)
-        va_loss, va_acc = _run_epoch(model, val_dl, criterion, optimizer, device=device, train=False)
+        tr_loss, tr_acc = _run_epoch(
+            model,
+            train_dl,
+            criterion,
+            optimizer,
+            device=device,
+            train=True,
+            verbose=verbose,
+            desc=f"Train {epoch}/{cfg.epochs}",
+        )
+        va_loss, va_acc = _run_epoch(
+            model,
+            val_dl,
+            criterion,
+            optimizer,
+            device=device,
+            train=False,
+            verbose=verbose,
+            desc=f"Val   {epoch}/{cfg.epochs}",
+        )
 
         history["train_loss"].append(float(tr_loss))
         history["val_loss"].append(float(va_loss))
@@ -357,11 +376,26 @@ def train_model(
         if improved:
             best_val = float(va_loss)
             bad_epochs = 0
-            torch.save({"model_state_dict": model.state_dict(), "epoch": epoch, "val_loss": best_val}, best_path)
+            try:
+                torch.save({"model_state_dict": model.state_dict(), "epoch": epoch, "val_loss": best_val}, best_path)
+            except Exception as e:
+                # If saving fails (permissions/locked path), keep training without checkpointing.
+                if verbose:
+                    print(f"WARNING: could not save checkpoint to {best_path} ({e!r}). Continuing without saving.")
         else:
             bad_epochs += 1
 
+        if verbose:
+            print(
+                f"Epoch {epoch:02d}/{cfg.epochs} | "
+                f"train_loss={tr_loss:.4f} acc={tr_acc*100:.1f}% | "
+                f"val_loss={va_loss:.4f} acc={va_acc*100:.1f}% | "
+                f"best_val_loss={best_val:.4f}"
+            )
+
         if bad_epochs >= cfg.patience:
+            if verbose:
+                print(f"Early stopping triggered (patience={cfg.patience}).")
             break
 
     metrics_path = out_dir / "metrics.json"
@@ -378,6 +412,8 @@ def _run_epoch(
     *,
     device: torch.device,
     train: bool,
+    verbose: bool,
+    desc: str,
 ) -> tuple[float, float]:
     model.train(train)
     total_loss = 0.0
@@ -386,7 +422,12 @@ def _run_epoch(
 
     ctx = torch.enable_grad() if train else torch.no_grad()
     with ctx:
-        for xb, yb in loader:
+        it: Iterable[Any]
+        if verbose:
+            it = tqdm(loader, desc=desc, leave=False)
+        else:
+            it = loader
+        for xb, yb in it:
             xb = xb.to(device)
             yb = yb.to(device)
             if train:
