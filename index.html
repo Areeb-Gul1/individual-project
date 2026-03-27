@@ -97,8 +97,7 @@
     <div class="wrap">
       <h1>Explainable AI with CNNs — Grad-CAM on PlantVillage</h1>
       <p class="muted">
-        A short, story-based tutorial showing how we train a CNN classifier and then use <b>Grad-CAM</b>
-        to visualise what parts of a leaf image most influenced the prediction (Selvaraju et al., 2017).
+        A brief tutorial, in the form of a story, on how we are training a CNN classifier and then apply Grad-CAM to understand which features of a leaf picture contributed, on average, the most to the prediction (Selvaraju et al., 2017).
       </p>
     </div>
   </header>
@@ -107,117 +106,110 @@
     <div class="card">
       <h2 style="border-left-color: var(--accent2);">The idea in plain language</h2>
       <p>
-        Imagine an AI is asked to identify plant disease from a photo. The model can be accurate, but
-        it may be hard to trust. Grad-CAM (Selvaraju et al., 2017) turns the decision into a heatmap so you can
-        see which image regions were most influential for the predicted class.
+        Suppose an AI is called upon to detect the plant disease in a photograph. The model might be true, but it might be difficult to believe. Grad-CAM (Selvaraju et al., 2017) visualizes the decision in the form of a heatmap to visualize what parts of the image the decision relied on the most.
       </p>
       <p class="muted">
-        <b>Important:</b> Grad-CAM is a post-hoc visual explanation. It highlights correlated evidence used by the model,
-        but it does not prove the highlighted pixels are the true biological cause of disease (Ribeiro et al., 2016).
+        <b>Notable:</b> Grad-CAM is a post-hoc visual explanation. It emphasizes correlated evidence that the model makes use of but does not demonstrate that the highlighted pixels are actually the real biological cause of disease (Ribeiro et al., 2016).
       </p>
     </div>
 
     <h2>1) Scene A — The photos (PlantVillage dataset)</h2>
     <p class="muted">
-      The dataset comes from PlantVillage (Hughes &amp; Salath&eacute;, 2015). In this project we select a small set of
-      “healthy” and “disease” classes to keep the tutorial fast and focused.
+      It is based on the data of PlantVillage (Hughes &amp; Salathe, 2015). Here we use a tiny number of classes of health and disease in our project to make the tutorial short and narrow.
     </p>
     <div class="grid">
       <figure>
         <img src="figures/00_story_dataset_gallery.png" alt="Gallery of example plant leaf images for each class in the tutorial selection." />
         <figcaption>
-          <b>Figure:</b> Example images per selected class. These are the “characters” in our story.
-          The visual differences between healthy and diseased leaves are noticeable, but some disease classes still share similar color shifts and texture changes.
-          This early overlap is important because it explains why classification is not trivial, even for a strong CNN.
-          It also justifies using explainability later, so we can verify the model is focusing on leaf symptoms rather than incidental image patterns.
+          Tutorial selection Gallery of example plant leaf images of each class.
+          <b>Figure:</b> Some images of each of the chosen classes. These are the characters of our story. It is evident that the visual changes of healthy and diseased leaves can be observed, yet some types of diseases share color changes and texture variation. The significance of this early overlap is that it indicates that even a powerful CNN must not classify efforts with a trivial task. It also justifies explainability in the future, therefore allowing us to ensure that the model is concentrating on leaf symptoms as opposed to accidental image patterns.
         </figcaption>
       </figure>
     </div>
 
     <h2>2) Scene B — Training the learner</h2>
     <p>
-      We split images into training, validation, and test sets so we can measure how well the model learns and
-      how well it performs on unseen images. (Validation is a better indicator than training accuracy alone.)
+      We divide images into training, validation, and test sets in order to be able to estimate the level of model learning and its effectiveness on unseen images. This should be used together with (Validation is a better indicator than training accuracy alone)
     </p>
     <div class="grid grid-2">
       <figure>
         <img src="figures/01_story_split_distribution.png" alt="Bar chart showing how many images are in train, validation, and test for each selected class." />
         <figcaption>
-          <b>Figure:</b> How the data is split into Train / Validation / Test.
-          The split keeps evaluation honest by ensuring the model is tested on images it has never seen during training.
-          A balanced distribution across classes helps reduce bias toward majority classes and makes accuracy comparisons more meaningful.
-          This setup supports fair interpretation of both performance metrics and Grad-CAM explanations in later stages.
+          Bar chart of the number of train, validation and test images of each of the selected classes.
+          <b>Figure:</b> The data division between Train and Validation and Test. The division makes evaluation honest and makes sure that the model is tested on images that it has never seen in the course of training. Balanced distribution in the classes facilitates less bias on the majority classes and accuracy comparison is more significant. This arrangement aids in the equitable interpretation of performance metrics as well as Grad-CAM clarifications in subsequent phases.
         </figcaption>
       </figure>
       <figure>
         <img src="figures/02_story_resize_and_augmentation.png" alt="Three images showing how the same photo appears after resizing and two different training augmentations." />
         <figcaption>
-          <b>Figure:</b> The model is trained on variations of the same photo so it learns robust patterns.
-          Augmentation increases variation in orientation, scale, and appearance, which helps the model generalize beyond a single visual style.
-          This reduces the risk that the network memorizes exact training samples instead of learning disease-related structures.
-          As a result, model behavior is usually more stable when tested on new images with minor photographic differences.
+          Three images of the same photo with the same photo resized and two variations of different training augmentations.
+          <b>Figure:</b> The model is lost on variations of one and the same photo in order that it learns powerful patterns. Augmentation enhances diversity in terms of orientation, scale, and appearance and this is useful in making the model generalized with respect to a single visual style. This eliminates the possibility of the network just memorizing the exact training samples rather than learning the disease structures. This results in the model behavior being more stable when tested with new photos with small photographic differences.
         </figcaption>
       </figure>
     </div>
 
     <h2>3) Scene C — The report card (learning curves)</h2>
     <p class="muted">
-      We track two signals:
-      (1) <b>loss</b> (lower is better), and (2) <b>accuracy</b> (higher is better) on training vs validation.
+      There are two signals that we track, (1) loss (smaller is better), (2) accuracy (greater is better) on training vs validation.
     </p>
     <div class="grid">
       <figure>
         <img src="figures/03_training_curves.png" alt="Learning curves: loss and accuracy over epochs for train and validation." />
         <figcaption>
-          <b>Figure:</b> Training progress. We expect loss to go down and accuracy to go up.
-          The model shows improving accuracy and decreasing loss over epochs, indicating that it is learning meaningful class-discriminative patterns.
-          The validation trend broadly follows the training trend, which suggests limited overfitting rather than severe memorization.
-          Any remaining gap between training and validation curves indicates where further regularization or additional data could still improve robustness.
+          Loss and accuracy during train and validation across epochs: learning curves.
+          <b>Figure:</b> Training progress. We are anticipating a reduction in the loss and improvement in accuracy. The model demonstrates that its accuracy is increasing and its loss is reducing as the number of epochs increases, suggesting that the model is learning some meaningful patterns of classes discrimination. The pattern of validation is generally the same as the pattern of training indicating minimal overfitting as opposed to extreme memorization. Another gap of training and validation curves will represent where the regularization may be further enhanced or where more data may be used to make it more robust.
         </figcaption>
       </figure>
     </div>
 
     <h2>4) Scene D — Evaluation (where predictions go wrong)</h2>
     <p>
-      A confusion matrix shows which classes the model confuses. Diagonal entries represent correct predictions.
+      Confusion matrix indicates the classes that are confused by the model. The correct predictions are diagonally placed.
     </p>
     <div class="grid">
       <figure>
         <img src="figures/04_confusion_matrix.png" alt="Confusion matrix comparing true vs predicted labels for the selected classes." />
         <figcaption>
-          <b>Figure:</b> Confusion matrix. Look for off-diagonal blocks to see which diseases are mixed up.
-          Strong diagonal cells indicate that the model correctly identifies many samples in each class.
-          Off-diagonal errors show that visually similar disease categories are sometimes confused, which is expected when symptoms overlap.
-          This error pattern highlights where class-specific data enrichment or targeted augmentation would likely provide the biggest gains.
+          Confusion matrix of true and predicted classes of the chosen classes.
+          <b>Figure:</b> Confusion matrix. In search of off-diagonal blocks, find out which diseases are confused. Powerful diagonal cells imply that the model rightly classifies most of the samples in every category. The off-diagnostic errors indicate that the visually similar disease categories are confused in some cases, which is anticipated in the case of overlapping symptoms. Such pattern of errors has shown where the class specific enrichment of data or targeted augmentation would offer maximum benefits.
         </figcaption>
       </figure>
     </div>
-
     <h2>5) Scene E — The explanation (Grad-CAM heatmaps)</h2>
     <p class="muted">
-      Each snapshot shows:
-      (1) the original photo,
-      (2) a heatmap (brighter = stronger influence),
-      (3) an overlay that helps non-technical readers understand where the model “looked”.
+      Every snapshot consists of: (1) the original photograph, (2) a heatmap (brightness corresponds to the strength of the influence), (3) an overlay, which makes the non-technical viewer know where the model looked.
     </p>
 
     <div class="grid grid-2">
       <figure>
         <img src="figures/05_gradcam_case1_correct.png" alt="Grad-CAM explanation for a correct prediction: original photo, heatmap, and overlay." />
         <figcaption>
-          <b>Case 1:</b> Correct prediction. Heatmap should align with plausible diseased tissue.
-          In this example, the model focuses on discolored regions of the leaf, which aligns with visible disease symptoms.
-          This suggests the network is using relevant leaf evidence rather than background noise to make the correct decision.
-          The alignment between prediction and highlighted pathology increases confidence that the classifier has learned meaningful visual cues.
+          Grad-CAM interpretation of a correct prediction: original image, heatmap and overlay.
+          <b>Case 1:</b> Correct prediction. Plausible diseased tissue should be in accordance with heatmap. Gray patches of the leaf are of interest in this model, which is in line with the apparent symptoms of the disease. This implies that the network is not relying on the background noise to make the appropriate decision but instead relies on the evidence of the leaves that is relevant. Consistency of prediction and point of focus of pathology gives a greater confidence of the classifier learning meaningful visual cues.
         </figcaption>
       </figure>
       <figure>
         <img src="figures/06_gradcam_case2_wrong.png" alt="Grad-CAM explanation for a wrong prediction: original photo, heatmap, and overlay." />
         <figcaption>
-          <b>Case 2:</b> Wrong prediction. Heatmap can reveal misleading focus (useful for debugging).
-          The attention map appears partially shifted toward less informative regions, which can explain the incorrect class assignment.
-          This indicates the model may be reacting to ambiguous texture or color patterns shared across disease classes.
-          Such cases are valuable for debugging because they identify where additional samples or improved preprocessing are needed.
+          Explaination of a wrong prediction using Grad-CAM: original image, heatmap, and overlay.
+          <b>Case 2:</b> Wrong prediction. Misleading focus can be revealed by heatmap (helpful in debugging). It is possible to say that the attention map is partially shifted to less informative parts, and this is the reason why the wrong class was assigned. This means that the model is possibly responding to uncertain texture/color pattern common to sets of diseases. These instances are useful in debugging since they establish the places where more samples or better preprocessing should be done.
+        </figcaption>
+      </figure>
+    </div>
+
+    <div class="grid grid-2">
+      <figure>
+        <img src="figures/10_gradcam_extra_correct_1.png" alt="Additional Grad-CAM panel for another correct prediction: original, heatmap, overlay." />
+        <figcaption>
+          Other correct prediction Grad-CAM panel: original, heatmap, overlay.
+          <b>Extra Grad-CAM (correct):</b> This is another correct case so that the use of one anecdote is not relied on. The presence of regular attention to the areas of leaf symptoms in a series of correctly solved examples supports the argument that the model acquired meaningful features. When the focus is on similar patterns of disease repeatedly, the belief in the general reasoning as opposed to the coincidental correspondence of the model is enhanced.
+        </figcaption>
+      </figure>
+      <figure>
+        <img src="figures/11_gradcam_extra_wrong_1.png" alt="Additional Grad-CAM panel for another incorrect prediction: original, heatmap, overlay." />
+        <figcaption>
+          Further Grad-CAM panel of another false prediction: original, heatmap, overlay.
+          <b>Extra Grad-CAM (incorrect):</b> This is another failure example of the model not comprehending when it fails. When ambiguous textures or non-symptom locations are highlighted in the heatmap, that indicates that the classifier is susceptible to spurious or coinciding visual features. Such descriptions facilitate the establishment of realistic boundaries of deployment and incentive the enhancement of datasets.
         </figcaption>
       </figure>
     </div>
@@ -226,10 +218,7 @@
       <figure>
         <img src="figures/07_gradcam_case3_healthy_vs_diseased.png" alt="Side-by-side Grad-CAM overlays comparing healthy versus diseased examples and showing different attention patterns." />
         <figcaption>
-          <b>Case 3:</b> Healthy vs diseased attention patterns side by side.
-          The healthy sample typically produces weaker, more diffuse attention, while the diseased sample shows stronger concentration around abnormal leaf areas.
-          This contrast supports the idea that the model distinguishes structural symptom regions rather than treating all leaf textures equally.
-          Comparing both cases side by side improves interpretability for non-technical users and helps communicate model behavior clearly.
+          Comparisons of Grad-CAM overlay localization of attention between healthy and diseased examples and the visualization of varying attention patterns.
         </figcaption>
       </figure>
     </div>

@@ -21,13 +21,25 @@ Tutorial code for **Explainable AI with CNNs: Visualizing Model Decisions using 
 
 First run may take time while `kagglehub` downloads the dataset.
 
+### Notes for reproducibility (markers)
+
+- **Determinism**: the notebook sets a fixed random seed and uses stratified splits.
+- **Transfer learning weights**: ResNet-18 ImageNet weights are downloaded the first time you run training. If your network/proxy corrupts downloads, delete the cached file at `~/.cache/torch/hub/checkpoints/resnet18-f37072fd.pth` and rerun (or switch networks).
+- **Outputs**:
+  - Figures are exported to `figures/` for the webpage.
+  - Training artifacts (best checkpoint + metrics + classification report text) are exported to `artifacts/`.
+
 ## Project layout
 
 | File | Purpose |
 |------|---------|
 | `gradcam_plantvillage_tutorial.ipynb` | Full pipeline: data loading → training → predictions → evaluation → Grad-CAM |
+| `src/` | Modular research-quality functions used by the notebook |
 | `requirements.txt` | Python dependencies |
 | `LICENSE` | MIT — reuse conditions for assessors |
+| `index.html` | Story-based webpage (main marking focus) |
+| `figures/` | Exported figures referenced by the webpage |
+| `artifacts/` | Saved checkpoints + metrics logs |
 
 ## Accessibility (for your write-up)
 
